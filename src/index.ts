@@ -4,12 +4,10 @@
 // const kRcWebhookEventsCollection = "rc-webhook-events";
 // const admin = require("firebase-admin");
 import {onDocumentCreated} from "firebase-functions/firestore";
-import {getAnalytics, logEvent} from "firebase/analytics";
 import {initializeApp} from "firebase-admin/app";
+import {getEventarc} from "firebase-admin/eventarc";
 
 initializeApp();
-
-const analytics = getAnalytics();
 
 // // Initialize Analytics with your actual GA4 measurement ID and API secret
 // const analytics = Analytics({
@@ -93,12 +91,15 @@ exports.trackWebhookEvents = onDocumentCreated(
         //     timestamp: Date.now()
         //   }
         // });
-        logEvent(analytics, "web_subscription", {
-          client_id: clientId,
-          purchase_type: "initial",
-          timestamp: Date.now(),
+        getEventarc().channel().publish({
+          type: "web-subscription",
+          subject: "New user Subscribed",
+          data: {
+            client_id: clientId,
+            purchase_type: "initial",
+            timestamp: Date.now(),
+          },
         });
-
         console.log(`Successfully tracked initial purchase for user ${userId}`);
       }
     } catch (error) {
